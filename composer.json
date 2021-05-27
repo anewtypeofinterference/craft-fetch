@@ -1,0 +1,42 @@
+{
+    "name": "anti/craft-fetch",
+    "description": "Fetch data from external APIs and cahce the results.",
+    "type": "craft-plugin",
+    "version": "1.0.2",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "craft fetch"
+    ],
+    "support": {
+        "docs": "https://github.com/anewtypeofinterference/craft-fetch/blob/master/README.md",
+        "issues": "https://github.com/anewtypeofinterference/craft-fetch/issues"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Lasse Mejlvang Tvedt",
+            "homepage": "https://anti.as"
+        }
+    ],
+    "require": {
+        "craftcms/cms": "^3.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+          "anti\\fetch\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "Craft Fetch",
+        "handle": "fetch",
+        "developer": "Lasse Mejlvang Tvedt",
+        "developerUrl": "https://anti.as",
+        "documentationUrl": "https://github.com/anewtypeofinterference/craft-fetch/blob/master/README.md",
+        "changelogUrl": "https://raw.githubusercontent.com/anewtypeofinterference/craft-fetch/master/CHANGELOG.md",
+        "components": {},
+        "class": "anti\\fetch\\Fetch"
+    }
+}
