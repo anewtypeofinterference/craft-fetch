@@ -16,7 +16,6 @@ use anti\fetch\Fetch as Plugin;
  */
 class Fetch
 {
-
     /**
      * Get request
      *
