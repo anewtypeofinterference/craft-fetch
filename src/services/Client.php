@@ -11,8 +11,10 @@ namespace anti\fetch\services;
 use anti\fetch\Fetch as Plugin;
 use anti\fetch\models\Settings;
 
+
 use Craft;
 use craft\base\Component;
+use craft\helpers\ConfigHelper;
 use craft\helpers\Json as JsonHelper;
 
 class Client extends Component
@@ -25,17 +27,14 @@ class Client extends Component
         'allow_redirects' => true
     ];
 
-    // Time, in seconds, during which we store the responses in cache
-    private $_cacheTtl = 3600;
-
     // Public Methods
     // =========================================================================
     /**
      * Shorthand method to create a get request
      */
-    public function get($url, $options = [], $fromCache = true, $cacheTtl = null)
+    public function get($url, $options = [], $cache = true)
     {
-        return $this->_request('GET', $url, $options, $fromCache);
+        return $this->_request('GET', $url, $options, $cache);
     }
 
     /**
@@ -45,22 +44,48 @@ class Client extends Component
      * @param string $method The request's method (GET or POST)
      * @param string $url The URL to perform the request to
      * @param array $options An options array
-     * @param boolean $fromCache Try fetching results from cache.
+     * @param mixed $cache Try fetching results from cache.
      *
      * @return object { "statusCode": 200, "body": { ... }, "error": "If any..." }
      */
-    private function _request($method, $url, $options = [], $fromCache = true, $cacheTtl = null)
+    private function _request($method, $url, $options = [], $cache = true)
     {
-        // Obtain the cache id
-        $cacheId = $this->_getCacheId($method, $url, $options);
+        if ($cache) {
+          $cacheKey = $this->_getCacheId($method, $url, $options);
+          $cacheService = Craft::$app->getCache();
 
-        if($fromCache) {
-            // Check if the response has already been cached
-            if( $cachedResult = Craft::$app->getCache()->get($cacheId) ) {
-                return $cachedResult;
-            }
+          if (($cachedContent = $cacheService->get($cacheKey)) !== false) {
+            return $cachedContent;
+          }
+
+          $elementsService = Craft::$app->getElements();
+          $elementsService->startCollectingCacheTags();
         }
 
+        // Get data
+        $data = $this->_fetchData($method, $url, $options);
+
+        // Cache it?
+        if ($cache) {
+          if(isset($data['error']) && $data['error']) {
+            // Cache errors for 5 minutes
+            $expire = ConfigHelper::durationInSeconds(300);
+          } else if ($cache !== true) {
+            $expire = ConfigHelper::durationInSeconds($cache);
+          } else {
+            $expire = null;
+          }
+
+          $dep = $elementsService->stopCollectingCacheTags();
+          $dep->tags[] = 'fetch';
+          $cacheService->set($cacheKey, $data, $expire, $dep);
+        }
+
+        return $data;
+    }
+
+    private function _fetchData($method, $url, $options)
+    {
         // If cache is empty or bypassed, we send the request
         $requestOptions = array_merge($this->_defaultOptions, $options);
 
@@ -71,16 +96,12 @@ class Client extends Component
 
             // Send the request
             $response = static::_client()->request($method, $url, $requestOptions);
-            $result = [
+            
+            return [
                 'statusCode' => $response->getStatusCode(),
                 'reason' => $response->getReasonPhrase(),
                 'body' => JsonHelper::decodeIfJson($response->getBody())
             ];
-
-            // Store in cache
-            Craft::$app->getCache()->set($cacheId, $result, $cacheTtl ? $cacheTtl : $this->_cacheTtl);
-
-            return $result;
         } catch(\Exception $e) {
             return [
                 'error' => true,

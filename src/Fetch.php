@@ -15,6 +15,8 @@ use anti\fetch\models\Settings;
 use Craft;
 use craft\base\Plugin;
 use craft\web\twig\variables\CraftVariable;
+use craft\utilities\ClearCaches;
+use craft\events\RegisterCacheOptionsEvent;
 
 use yii\base\Event;
 
@@ -57,6 +59,19 @@ class Fetch extends Plugin
         $this->setComponents([
             'client' => ClientService::class
         ]);
+
+        // Caching
+        Event::on(
+            ClearCaches::class,
+            ClearCaches::EVENT_REGISTER_TAG_OPTIONS,
+            function(RegisterCacheOptionsEvent $event)
+            {
+                $event->options[] = [
+                    'tag' => 'fetch',
+                    'label' => Craft::t('fetch', 'Fetch caches'),
+                ];
+            }
+        );
 
         // Register variable
         Event::on(

@@ -25,9 +25,9 @@ class Fetch
      * @return mixed
      * @throws DeprecationException
      */
-    public function get($url, $options = [], $fromCache = true)
+    public function get($url, $options = [], $cache = true)
     {
-        return Plugin::$plugin->client->get($url, $options, $fromCache);
+        return Plugin::$plugin->client->get($url, $options, $cache);
     }
 
 }
