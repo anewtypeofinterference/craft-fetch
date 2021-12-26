@@ -2,7 +2,7 @@
     "name": "anti/craft-fetch",
     "description": "Fetch data from external APIs and cahce the results.",
     "type": "craft-plugin",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "keywords": [
         "craft",
         "cms",
